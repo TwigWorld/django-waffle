@@ -15,6 +15,9 @@ just a percentage stored in the database.
 Flags, Switches, and Samples can be managed via the `command line
 <cli-chapter>`_.
 
+Flags, Switches, and Samples can use the Django Sites framework to 
+provide different settings for different sites. If Site is left blank
+then it will apply to all Sites.
 
 Flags
 -----
