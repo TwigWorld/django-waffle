@@ -4,6 +4,7 @@ except ImportError:
     from datetime import datetime
 
 from django.contrib.auth.models import Group
+from django.contrib.sites.models import Site
 from django.db import models
 
 from waffle.compat import User
@@ -15,7 +16,7 @@ class Flag(models.Model):
     Flags are active (or not) on a per-request basis.
 
     """
-    name = models.CharField(max_length=100, unique=True,
+    name = models.CharField(max_length=100,
                             help_text='The human/computer readable name.')
     everyone = models.NullBooleanField(blank=True, help_text=(
         'Flip this flag on (Yes) or off (No) for everyone, overriding all '
@@ -48,6 +49,8 @@ class Flag(models.Model):
     modified = models.DateTimeField(default=datetime.now, help_text=(
         'Date when this Flag was last modified.'))
 
+    site = models.ForeignKey(Site, blank=True, null=True, related_name='waffle_flags')
+
     def __unicode__(self):
         return self.name
 
@@ -55,6 +58,8 @@ class Flag(models.Model):
         self.modified = datetime.now()
         super(Flag, self).save(*args, **kwargs)
 
+    class Meta:
+        unique_together = ('name', 'site')
 
 class Switch(models.Model):
     """A feature switch.
@@ -62,7 +67,7 @@ class Switch(models.Model):
     Switches are active, or inactive, globally.
 
     """
-    name = models.CharField(max_length=100, unique=True,
+    name = models.CharField(max_length=100, 
                             help_text='The human/computer readable name.')
     active = models.BooleanField(default=False, help_text=(
         'Is this flag active?'))
@@ -73,6 +78,8 @@ class Switch(models.Model):
     modified = models.DateTimeField(default=datetime.now, help_text=(
         'Date when this Switch was last modified.'))
 
+    site = models.ForeignKey(Site, blank=True, null=True, related_name='waffle_switches')
+
     def __unicode__(self):
         return u'%s: %s' % (self.name, 'on' if self.active else 'off')
 
@@ -82,13 +89,14 @@ class Switch(models.Model):
 
     class Meta:
         verbose_name_plural = 'Switches'
+        unique_together = ('name', 'site')
 
 
 class Sample(models.Model):
     """A sample is true some percentage of the time, but is not connected
     to users or requests.
     """
-    name = models.CharField(max_length=100, unique=True,
+    name = models.CharField(max_length=100,
                             help_text='The human/computer readable name.')
     percent = models.DecimalField(max_digits=4, decimal_places=1, help_text=(
         'A number between 0.0 and 100.0 to indicate a percentage of the time '
@@ -100,9 +108,14 @@ class Sample(models.Model):
     modified = models.DateTimeField(default=datetime.now, help_text=(
         'Date when this Sample was last modified.'))
 
+    site = models.ForeignKey(Site, blank=True, null=True, related_name='waffle_samples')
+
     def __unicode__(self):
         return self.name
 
     def save(self, *args, **kwargs):
         self.modified = datetime.now()
         super(Sample, self).save(*args, **kwargs)
+
+    class Meta:
+        unique_together = ('name', 'site')

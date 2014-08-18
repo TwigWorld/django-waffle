@@ -5,6 +5,7 @@ import hashlib
 from django.conf import settings
 from django.core.cache import cache
 from django.db.models.signals import post_save, post_delete, m2m_changed
+from django.contrib.sites.models import Site
 
 from waffle.models import Flag, Sample, Switch
 
@@ -50,10 +51,15 @@ def flag_is_active(request, flag_name):
     flag = cache.get(keyfmt(FLAG_CACHE_KEY, flag_name))
     if flag is None:
         try:
-            flag = Flag.objects.get(name=flag_name)
+            current_site = Site.objects.get_current()
+            flag = Flag.objects.get(name=flag_name, site=current_site)
             cache_flag(instance=flag)
         except Flag.DoesNotExist:
-            return getattr(settings, 'WAFFLE_FLAG_DEFAULT', False)
+            try:
+                flag = Flag.objects.get(name=flag_name, site__isnull=True)
+                cache_flag(instance=flag)
+            except Flag.DoesNotExist:
+                return getattr(settings, 'WAFFLE_FLAG_DEFAULT', False)
 
     if getattr(settings, 'WAFFLE_OVERRIDE', False):
         if flag_name in request.GET:
@@ -132,12 +138,17 @@ def switch_is_active(switch_name):
     switch = cache.get(keyfmt(SWITCH_CACHE_KEY, switch_name))
     if switch is None:
         try:
-            switch = Switch.objects.get(name=switch_name)
+            current_site = Site.objects.get_current()
+            switch = Switch.objects.get(name=switch_name, site=current_site)
             cache_switch(instance=switch)
         except Switch.DoesNotExist:
-            switch = DoesNotExist()
-            switch.name = switch_name
-            cache_switch(instance=switch)
+            try:
+                switch = Switch.objects.get(name=switch_name, site__isnull=True)
+                cache_switch(instance=switch)
+            except Switch.DoesNotExist:
+                switch = DoesNotExist()
+                switch.name = switch_name
+                cache_switch(instance=switch)
     return switch.active
 
 
@@ -145,10 +156,15 @@ def sample_is_active(sample_name):
     sample = cache.get(keyfmt(SAMPLE_CACHE_KEY, sample_name))
     if sample is None:
         try:
-            sample = Sample.objects.get(name=sample_name)
+            current_site = Site.objects.get_current()
+            sample = Sample.objects.get(name=sample_name, site=current_site)
             cache_sample(instance=sample)
         except Sample.DoesNotExist:
-            return getattr(settings, 'WAFFLE_SAMPLE_DEFAULT', False)
+            try:
+                sample = Sample.objects.get(name=sample_name, site__isnull=True)
+                cache_sample(instance=sample)
+            except Sample.DoesNotExist:
+                return getattr(settings, 'WAFFLE_SAMPLE_DEFAULT', False)
 
     return Decimal(str(random.uniform(0, 100))) <= sample.percent
 
