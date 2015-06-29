@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='django-waffle',
-    version='1.0.0',
+    version='0.10.1+twig1',
     description='A feature flipper for Django.',
     long_description=open('README.rst').read(),
     author='James Socol',
@@ -21,6 +21,11 @@ setup(
         'License :: OSI Approved :: BSD License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.3',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ]
 )

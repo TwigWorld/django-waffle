@@ -14,10 +14,14 @@ usage() {
 case "$1" in
     "test" )
         django-admin.py test waffle ;;
+    "lint" )
+        flake8 waffle ;;
     "shell" )
         django-admin.py shell ;;
     "schema" )
         django-admin.py schemamigration waffle --auto ;;
+    "makemigrations" )
+        django-admin.py makemigrations waffle ;;
     * )
         usage ;;
 esac
