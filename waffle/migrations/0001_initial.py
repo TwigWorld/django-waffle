@@ -11,6 +11,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ('auth', '0001_initial'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+        ('sites', '0001_initial'),
     ]
 
     operations = [
@@ -65,5 +66,47 @@ class Migration(migrations.Migration):
                 'verbose_name_plural': 'Switches',
             },
             bases=(models.Model,),
+        ),
+        migrations.AddField(
+            model_name='flag',
+            name='site',
+            field=models.ForeignKey(related_name='waffle_flags', blank=True, to='sites.Site', null=True),
+        ),
+        migrations.AddField(
+            model_name='sample',
+            name='site',
+            field=models.ForeignKey(related_name='waffle_samples', blank=True, to='sites.Site', null=True),
+        ),
+        migrations.AddField(
+            model_name='switch',
+            name='site',
+            field=models.ForeignKey(related_name='waffle_switches', blank=True, to='sites.Site', null=True),
+        ),
+        migrations.AlterField(
+            model_name='flag',
+            name='name',
+            field=models.CharField(help_text='The human/computer readable name.', max_length=100),
+        ),
+        migrations.AlterField(
+            model_name='sample',
+            name='name',
+            field=models.CharField(help_text='The human/computer readable name.', max_length=100),
+        ),
+        migrations.AlterField(
+            model_name='switch',
+            name='name',
+            field=models.CharField(help_text='The human/computer readable name.', max_length=100),
+        ),
+        migrations.AlterUniqueTogether(
+            name='flag',
+            unique_together=set([('name', 'site')]),
+        ),
+        migrations.AlterUniqueTogether(
+            name='sample',
+            unique_together=set([('name', 'site')]),
+        ),
+        migrations.AlterUniqueTogether(
+            name='switch',
+            unique_together=set([('name', 'site')]),
         ),
     ]
