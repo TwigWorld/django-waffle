@@ -60,6 +60,7 @@ class Flag(models.Model):
 
     class Meta:
         unique_together = ('name', 'site')
+        app_label = 'waffle'
 
 class Switch(models.Model):
     """A feature switch.
@@ -90,6 +91,7 @@ class Switch(models.Model):
     class Meta:
         verbose_name_plural = 'Switches'
         unique_together = ('name', 'site')
+        app_label = 'waffle'
 
 
 class Sample(models.Model):
@@ -119,3 +121,4 @@ class Sample(models.Model):
 
     class Meta:
         unique_together = ('name', 'site')
+        app_label = 'waffle'
