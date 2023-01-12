@@ -1,16 +1,21 @@
-from django.db import connection
+from __future__ import unicode_literals
+
 from django.contrib.sites.models import Site
-from django.contrib.auth.models import AnonymousUser, Group, User
 
 import waffle
 from waffle.models import Flag, Sample, Switch
 from waffle.tests.base import TestCase
 
-from nose.tools import eq_
 from test_app import views
 
 from waffle.tests.test_waffle import get, process_request
+from django.test import RequestFactory
+from django.contrib.auth.models import AnonymousUser
 
+def req():
+    r = RequestFactory().get('/')
+    r.user = AnonymousUser()
+    return r
 
 class SiteTests(TestCase):
     def setUp(self):
@@ -26,38 +31,38 @@ class SiteTests(TestCase):
         switch1 = Switch.objects.create(name=name, active=True, site=self.site1)
         switch2 = Switch.objects.create(name=name, active=False, site=self.site2)
 
-        self.assertTrue(waffle.switch_is_active(name))
+        self.assertTrue(waffle.switch_is_active(req(), switch1))
 
         with self.settings(SITE_ID=2):
-            self.assertFalse(waffle.switch_is_active(name))
+            self.assertFalse(waffle.switch_is_active(req(), switch2))
 
     def test_switch_site_default(self):
         name = 'myswitch'
         switch = Switch.objects.create(name=name, active=True) # no site given
 
-        self.assertTrue(waffle.switch_is_active(name))
+        self.assertTrue(waffle.switch_is_active(req(), switch))
 
         with self.settings(SITE_ID=2):
-            self.assertTrue(waffle.switch_is_active(name))
+            self.assertTrue(waffle.switch_is_active(req(), switch))
 
     def test_sample_by_site(self):
         name = 'sample'
         sample1 = Sample.objects.create(name=name, percent='100.0', site=self.site1)
         sample2 = Sample.objects.create(name=name, percent='0.0', site=self.site2)
 
-        self.assertTrue(waffle.sample_is_active(name))
+        self.assertTrue(waffle.sample_is_active(sample1))
 
         with self.settings(SITE_ID=2):
-            self.assertFalse(waffle.sample_is_active(name))
+            self.assertFalse(waffle.sample_is_active(sample2))
 
     def test_sample_site_default(self):
         name = 'sample'
         sample = Sample.objects.create(name=name, percent='100.0') # no site given
 
-        self.assertTrue(waffle.sample_is_active(name))
+        self.assertTrue(waffle.sample_is_active(sample))
 
         with self.settings(SITE_ID=2):
-            self.assertTrue(waffle.sample_is_active(name))
+            self.assertTrue(waffle.sample_is_active(sample))
 
     def test_flag_by_site(self):
         name = 'myflag'
@@ -66,8 +71,8 @@ class SiteTests(TestCase):
         request = get()
 
         response = process_request(request, views.flag_in_view)
-        eq_(b'on', response.content)
+        self.assertEqual(b'on', response.content)
 
         with self.settings(SITE_ID=2):
             response = process_request(request, views.flag_in_view)
-            eq_(b'off', response.content)
+            self.assertEqual(b'off', response.content)

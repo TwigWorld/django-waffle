@@ -5,7 +5,9 @@ dist
 *.egg-info
 *test.db
 .coverage
+.idea/
 .project
 .pydevproject
 .settings
+.tox/
 docs/_*

@@ -1,4 +1,9 @@
 import os
+import django
+from distutils.version import StrictVersion
+
+
+DJANGO_VERSION = StrictVersion(django.get_version())
 
 # Make filepaths relative to settings.
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -6,12 +11,12 @@ path = lambda *a: os.path.join(ROOT, *a)
 
 DEBUG = True
 TEMPLATE_DEBUG = True
-
-TEST_RUNNER = 'django_nose.runner.NoseTestSuiteRunner'
+TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 
 JINJA_CONFIG = {}
 
 SITE_ID = 1
+USE_I18N = False
 
 SECRET_KEY = 'foobar'
 
@@ -28,38 +33,61 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
-    'django_nose',
-    'south',
     'waffle',
     'test_app',
 )
 
-MIDDLEWARE_CLASSES = (
+_MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'waffle.middleware.WaffleMiddleware',
 )
 
+
+if DJANGO_VERSION < StrictVersion('1.10.0'):
+    MIDDLEWARE_CLASSES = _MIDDLEWARE_CLASSES
+else:
+    MIDDLEWARE = _MIDDLEWARE_CLASSES
+
 ROOT_URLCONF = 'test_app.urls'
 
-TEMPLATE_LOADERS = (
-    'jingo.Loader',
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-)
-
-JINGO_EXCLUDE_APPS = (
-    'django',
-    'waffle',
-)
-
-TEMPLATE_CONTEXT_PROCESSORS = (
+_CONTEXT_PROCESSORS = (
     'django.contrib.auth.context_processors.auth',
-    'django.core.context_processors.request',
+    'django.template.context_processors.request',
 )
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django_jinja.backend.Jinja2',
+        'DIRS': [],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'match_regex': r'jinja.*',
+            'match_extension': '',
+            'newstyle_gettext': True,
+            'context_processors': _CONTEXT_PROCESSORS,
+            'undefined': 'jinja2.Undefined',
+            'extensions': [
+                'jinja2.ext.i18n',
+                'jinja2.ext.autoescape',
+                'waffle.jinja.WaffleExtension',
+            ],
+        }
+    },
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'debug': DEBUG,
+            'context_processors': _CONTEXT_PROCESSORS,
+        }
+    },
+]
 
 WAFFLE_FLAG_DEFAULT = False
 WAFFLE_SWITCH_DEFAULT = False
 WAFFLE_SAMPLE_DEFAULT = False
 WAFFLE_OVERRIDE = False
+WAFFLE_CACHE_PREFIX = 'test:'

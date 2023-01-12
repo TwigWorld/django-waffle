@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django import template
 from django.template.base import VariableDoesNotExist
 
@@ -9,6 +11,8 @@ register = template.Library()
 
 
 class WaffleNode(template.Node):
+    child_nodelists = ('nodelist_true', 'nodelist_false')
+
     def __init__(self, nodelist_true, nodelist_false, condition, name,
                  compiled_name):
         self.nodelist_true = nodelist_true
@@ -66,13 +70,13 @@ def flag(parser, token):
 
 @register.tag
 def switch(parser, token):
-    condition = lambda request, name: switch_is_active(name)
+    condition = lambda request, name: switch_is_active(request, name)
     return WaffleNode.handle_token(parser, token, 'switch', condition)
 
 
 @register.tag
 def sample(parser, token):
-    condition = lambda request, name: sample_is_active(name)
+    condition = lambda request, name: sample_is_active(request, name)
     return WaffleNode.handle_token(parser, token, 'sample', condition)
 
 
